@@ -79,6 +79,8 @@ class PythonServer(SimpleHTTPRequestHandler):
             self.show_records(PATH_HTML+"/show_productTypes.html","RP",db.fetch_records("Rodzaje_produktow"))
         elif self.path=='/show_MaterialTypes':
             self.show_records(PATH_HTML+"/show_materialTypes.html","RM",db.fetch_records("Rodzaje_materialow"))
+        elif self.path=='/show_Products':
+            self.show_records(PATH_HTML+"/show_products.html","Pr",db.fetch_records("Produkty"))
         elif self.path[:4]=='/mod':
             #mod_??_{id}
             tab=self.path[5:7]
@@ -112,8 +114,6 @@ class PythonServer(SimpleHTTPRequestHandler):
                 fields = cgi.parse_multipart(self.rfile, pdict)
                 nazwa = fields.get("prodType")[0]
                 db.Rodzaje_produktow.insert_record(nazwa)
-
-            self.path="/show_ProductTypes"
             pyautogui.hotkey('f5')
             
         elif self.path=='/add_new_materialType':
@@ -125,8 +125,21 @@ class PythonServer(SimpleHTTPRequestHandler):
                 nazwa = fields.get("matType")[0]
                 cena = fields.get("matPrice")[0]
                 db.Rodzaje_materialow.insert_record(nazwa,cena)
+            pyautogui.hotkey('f5')
+            
+        elif self.path=='/add_new_product':
+            ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
+            pdict['boundary'] = bytes(pdict['boundary'], 'utf-8')
 
-            self.path="/show_MaterialTypes"
+            if ctype == 'multipart/form-data':
+                fields = cgi.parse_multipart(self.rfile, pdict)
+                nazwa_pt = fields.get("prodTypeName")[0]
+                nazwa = fields.get("prodName")[0]
+                cena = fields.get("prodPrice")[0]
+                
+                id_pt=db.Rodzaje_produktow.get_id_by_name(nazwa_pt)
+                print(id_pt)
+                db.Produkty.insert_record(id_pt,nazwa,cena)
             pyautogui.hotkey('f5')
             
         elif self.path[:4]=='/del':
@@ -138,21 +151,17 @@ class PythonServer(SimpleHTTPRequestHandler):
                 table="Rodzaje_produktow"
             elif tab=="RM":
                 table="Rodzaje_materialow"
+            elif tab=="Pr":
+                table="Produkty"
                 
             db.del_record_byID(table,id)
-            self.path="/show_ProductTypes"
             pyautogui.hotkey('f5')
-                        
         
 def server_start():
     db.connection = connect(db.DB_NAME)
     db.cursor = db.connection.cursor()
     #db.database_hard_reset()
     db.database_init()
-    
-    #db.Rodzaje_produktow.insert_record("Palety")
-    #db.Rodzaje_produktow.insert_record("Skrzynie")
-    #db.MyQuery("Select * from Rodzaje_produktow")
     
     server = HTTPServer((HOST_NAME, PORT), PythonServer)
     print(f"Server started http://{HOST_NAME}:{PORT}")
