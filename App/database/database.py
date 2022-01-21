@@ -116,6 +116,53 @@ class Komponenty():
     def del_record_byID(id1, id2, name):
         MyQuery("DELETE FROM Komponenty where ID_produktu=? and ID_materialu=? and nazwa=?",(id1, id2, name))
 
+class Klienci():
+    def create_table():
+        table_script = '''CREATE TABLE IF NOT EXISTS Klienci(
+                        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        nazwa TEXT not null UNIQUE,
+                        lokalizacja TEXT not null,
+                        poczatek_wspolpracy date not null
+                    );
+                    '''
+        MyQuery(table_script)
+
+    def insert_record(nazwa,lokalizacja,poczatek_wspolpracy):
+        MyQuery('INSERT INTO Klienci(nazwa,lokalizacja,poczatek_wspolpracy) VALUES(?)',(nazwa,lokalizacja,poczatek_wspolpracy))
+
+class Zlecenia():
+    def create_table():
+        table_script = '''CREATE TABLE IF NOT EXISTS Zlecenia(
+                        ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        data_zamowienia DATE not null default DATE('now'),
+                        data_zakonczenia DATE,
+                        ostateczny_termin DATE not null default DATE('now','+7 day'),
+                        cena_calosc INTEGER not null default 0,
+                        status_zlecenia CHAR not null default 'R'
+                    );
+                    '''
+        MyQuery(table_script)
+        #statusy: R - rozpoczete, Z - zakonczone
+
+    def new_order():
+        MyQuery('INSERT INTO Zlecenia')
+        
+class Produkty_na_sprzedaz():
+    def create_table():
+        table_script = '''CREATE TABLE IF NOT EXISTS Produkty_na_sprzedaz(
+                        ID_produktu INTEGER not null,
+                        ID_zlecenia INTEGER not null,
+                        
+                        FOREIGN KEY(ID_produktu) REFERENCES Rodzaje_produktow(ID) on delete cascade,
+                        FOREIGN KEY(ID_zlecenia) REFERENCES Zlecenia(ID) on delete cascade,
+                        PRIMARY KEY(ID_produktu,ID_zlecenia)
+                    );
+                    '''
+        MyQuery(table_script)
+    
+    def insert_record(ID_produktu,ID_zlecenia):
+        MyQuery('INSERT INTO Produkty_na_sprzedaz(ID_produktu,ID_zlecenia) VALUES(?,?)',(ID_produktu,ID_zlecenia))
+
 def fetch_records(table):
     return MyQuery(f"SELECT * FROM {table}")
 
@@ -127,7 +174,10 @@ def database_init():
     Rodzaje_materialow.create_table()
     Produkty.create_table()
     Komponenty.create_table()
-    
+    Klienci.create_table()
+    Zlecenia.create_table()
+    Produkty_na_sprzedaz.create_table()
+
 def database_hard_reset():
     try:
         database_init()
@@ -135,6 +185,9 @@ def database_hard_reset():
         cursor.execute("DROP TABLE Rodzaje_materialow")
         cursor.execute("DROP TABLE Produkty")
         cursor.execute("DROP TABLE Komponenty")
+        cursor.execute("DROP TABLE Klienci")
+        cursor.execute("DROP TABLE Zlecenia")
+        cursor.execute("DROP TABLE Produkty_na_sprzedaz")
         database_init()
         connection.commit()
     except (connection.Error, connection.Warning) as e:
