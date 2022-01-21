@@ -1,3 +1,5 @@
+import datetime
+
 DB_NAME = "database/Stolarnia.db"
 
 connection = None
@@ -135,11 +137,13 @@ class Klienci():
 
 class Zlecenia():
     def create_table():
-        table_script = '''CREATE TABLE IF NOT EXISTS Zlecenia(
+        tmp=str(datetime.datetime.today() + datetime.timedelta(days=7))
+        tmp=tmp.split()[0]
+        table_script = f'''CREATE TABLE IF NOT EXISTS Zlecenia(
                         ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        data_zamowienia DATE not null default CURRENT_DATE,
-                        data_zakonczenia DATE,
-                        ostateczny_termin DATE not null default (datetime('now')),
+                        data_zamowienia TEXT not null default CURRENT_DATE,
+                        data_zakonczenia TEXT,
+                        ostateczny_termin TEXT not null default \"{tmp}\",
                         cena_calosc INTEGER not null default 0,
                         status_zlecenia CHAR not null default 'R'
                     );
@@ -148,7 +152,11 @@ class Zlecenia():
         #statusy: R - rozpoczete, Z - zakonczone
 
     def new_order():
-        MyQuery('INSERT INTO Zlecenia')
+        MyQuery('INSERT INTO Zlecenia DEFAULT VALUES')
+        
+    def fetch_records_ord(type):
+        return MyQuery(f'SELECT ID,data_zamowienia,ostateczny_termin,cena_calosc FROM Zlecenia WHERE status_zlecenia="{type}"')
+    
         
 class Produkty_na_sprzedaz():
     def create_table():

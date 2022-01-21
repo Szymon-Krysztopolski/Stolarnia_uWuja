@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Stolarnia</title>
+
+        <style>{{MyStyle}}</style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2>Klienci</h2>
+            </div>
+            <div class="content">
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>data zamowienia</th>
+                        <th>ostateczny termin</th>
+                        <th>cena calosc</th>
+                    </tr>
+                    {{records}}
+                </table>
+                <form action='/'>
+                    <input type="submit" value="Cofnij">
+                </form>
+                <form action='/start_new_order'>
+                    <input type="submit" value="Rozpocznij nowe zamowienie">
+                </form>
+            </div>
+            <div class="footer"></div>
+        </div>
+    </body>
+</html>

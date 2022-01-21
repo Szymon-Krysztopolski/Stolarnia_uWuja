@@ -12,10 +12,6 @@ PORT = 8404
 PATH_HTML = "./templates"
 #-------------------------------------------------------------------------
 def butt_del(table,id,id2,name):
-    table=table[:2]
-    if table!="Ko":
-        id2=""
-        
     return f'''<form method="POST", enctype="multipart/form-data" action="/del_{table}_{id}-{id2}*{name}">
             <input type="submit" value="Usun">
         </form>'''
@@ -70,19 +66,21 @@ class PythonServer(SimpleHTTPRequestHandler):
                 table_row += f'<a class="button" href="/mod_{table_name}_{str(data[0])}">Modyfikuj</a><br>'
                 table_row += "</td>"
             
+            #details
+            if table_name in ["Pr","OR"]:
+                table_row += "<td>"
+                table_row += f'<a class="button" href="/det_{table_name}_{str(data[0])}">Szczegoly</a><br>'
+                table_row += "</td>"
+            
             #del butt
             table_row += "<td>"
             if table_name == "Ko":
                 table_row += butt_del(table_name,str(data[0]),str(data[1]),str(data[2]))
+            elif table_name == "OR":
+                table_row += f'<a class="button" href="/ordEnd_{str(data[0])}">Zakoncz</a><br>'
             else:
                 table_row += butt_del(table_name,str(data[0]),"","")
             table_row += "</td>"
-            
-            #details for components
-            if table_name=="Pr":
-                table_row += "<td>"
-                table_row += f'<a class="button" href="/det_{table_name}_{str(data[0])}">Szczegoly</a><br>'
-                table_row += "</td>"
             
             table_row += "</tr>"
         file = file.replace("{{records}}", table_row)
@@ -101,6 +99,13 @@ class PythonServer(SimpleHTTPRequestHandler):
             self.show_records(PATH_HTML+"/show_products.html","Pr",db.fetch_records("Produkty"))
         elif self.path=='/show_Clients':
             self.show_records(PATH_HTML+"/show_clients.html","Cl",db.fetch_records("Klienci"))
+        elif self.path=='/show_orders_R':
+            self.show_records(PATH_HTML+"/show_orders_R.html","OR",db.Zlecenia.fetch_records_ord("R"))
+        elif self.path=='/start_new_order?':
+            db.Zlecenia.new_order()
+            tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="/show_orders_R"</script></head><body></body></html>'
+            self.respond_mess(tmp)
+            
         elif self.path[:4]=='/mod':
             #mod_??_{id}
             try:
