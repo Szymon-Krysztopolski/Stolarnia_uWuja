@@ -11,21 +11,19 @@
     <body>
         <div class="container">
             <div class="header">
-                <h2>Produkty</h2>
+                <h2>Zamowienia</h2>
             </div>
             <div class="content">
                 <table>
                     <tr>
                         <th>ID</th>
-                        <th>nazwa</th>
+                        <th>data zamowienia</th>
+                        <th>data zakonczenia</th>
+                        <th>ostateczny termin</th>
+                        <th>cena calosc</th>
                     </tr>
                     {{records}}
                 </table>
-                <form method="POST" , enctype="multipart/form-data" action='/add_new_productType'>
-                    <label for="prodType">Nazwa nowego rodzaju produktow</label><br>
-                    <input type="text" name="prodType" value="Nowy"><br>
-                    <input type="submit" value="Dodaj">
-                </form>
             </div>
             <div class="footer"></div>
         </div>

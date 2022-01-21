@@ -14,17 +14,14 @@
                 <h2>Zamowienia</h2>
             </div>
             <div class="content">
-                <table>
-                    <tr>
-                        <th>ID</th>
-                        <th>data zamowienia</th>
-                        <th>ostateczny termin</th>
-                        <th>cena calosc</th>
-                    </tr>
-                    {{records}}
-                </table>
-                <form action='/start_new_order'>
-                    <input type="submit" value="Rozpocznij nowe zamowienie">
+                <form>
+                    <label for="data_start">Data zamowienia</label><br>
+                    <input type="date" name="data_start" value=""><br>
+
+                    <label for="data_dline">Ostateczny termin</label><br>
+                    <input type="date" name="data_dline" value=""><br>
+
+                    <input type="submit" value="Update">
                 </form>
             </div>
             <div class="footer"></div>

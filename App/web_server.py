@@ -63,7 +63,10 @@ class PythonServer(SimpleHTTPRequestHandler):
             #modif butt
             if table_name != "Ko":
                 table_row += "<td>"
-                table_row += f'<a class="button" href="/mod_{table_name}_{str(data[0])}">Modyfikuj</a><br>'
+                if table_name!="OZ":
+                    table_row += f'<a class="button" href="/mod_{table_name}_{str(data[0])}">Modyfikuj</a><br>'
+                else:
+                    table_row += f'<a class="button" href="/ordBack_{str(data[0])}">Przywroc</a><br>'
                 table_row += "</td>"
             
             #details
@@ -81,8 +84,12 @@ class PythonServer(SimpleHTTPRequestHandler):
             else:
                 table_row += butt_del(table_name,str(data[0]),"","")
             table_row += "</td>"
-            
             table_row += "</tr>"
+            
+        table_row += "<form action='/'>"
+        table_row += '<input type="submit" value="Strona glowna">'
+        table_row += "</form>"
+        
         file = file.replace("{{records}}", table_row)
         self.send_response(200, "OK")
         self.end_headers()
@@ -101,10 +108,22 @@ class PythonServer(SimpleHTTPRequestHandler):
             self.show_records(PATH_HTML+"/show_clients.html","Cl",db.fetch_records("Klienci"))
         elif self.path=='/show_orders_R':
             self.show_records(PATH_HTML+"/show_orders_R.html","OR",db.Zlecenia.fetch_records_ord("R"))
+        elif self.path=='/show_orders_Z':
+            self.show_records(PATH_HTML+"/show_orders_Z.html","OZ",db.Zlecenia.fetch_records_ord("Z"))
         elif self.path=='/start_new_order?':
             db.Zlecenia.new_order()
             tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="/show_orders_R"</script></head><body></body></html>'
             self.respond_mess(tmp)
+        elif self.path[:7]=='/ordEnd':
+            id=self.path[8:]
+            db.Zlecenia.end_order(id)
+            self.path="/show_orders_R"
+            pyautogui.hotkey('F5')
+        elif self.path[:8]=='/ordBack':
+            id=self.path[9:]
+            db.Zlecenia.change_status(id,'R')
+            self.path="/show_orders_Z"
+            pyautogui.hotkey('F5')
             
         elif self.path[:4]=='/mod':
             #mod_??_{id}
@@ -141,10 +160,14 @@ class PythonServer(SimpleHTTPRequestHandler):
                             pocz_wsp = query_components["clSdate"][0]
                         except:
                             pocz_wsp=datetime.date.today()
-                        
                         db.Klienci.update_record(id,nazwa,lokalizacja,pocz_wsp)
                         self.path="/show_Clients"
-                    
+                    elif tab=="OR":
+                        data_zamowienia = query_components["data_start"][0]
+                        ostateczny_termin = query_components["data_dline"][0]
+                        db.Zlecenia.update_record(id,data_zamowienia,ostateczny_termin)
+                        self.path="/show_orders_R"
+                        
                     tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="{self.path}"</script></head><body></body></html>'
                     self.respond_mess(tmp)
             except:
@@ -244,6 +267,8 @@ class PythonServer(SimpleHTTPRequestHandler):
                 db.Komponenty.del_record_byID(id,id2,name)
             elif tab=="Cl":
                 db.del_record_byID("Klienci",id)
+            elif tab=="OZ":
+                db.del_record_byID("Zlecenia",id)
                 
             pyautogui.hotkey('f5')
 #-------------------------------------------------------------------------

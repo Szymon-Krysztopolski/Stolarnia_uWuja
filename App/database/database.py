@@ -137,13 +137,11 @@ class Klienci():
 
 class Zlecenia():
     def create_table():
-        tmp=str(datetime.datetime.today() + datetime.timedelta(days=7))
-        tmp=tmp.split()[0]
         table_script = f'''CREATE TABLE IF NOT EXISTS Zlecenia(
                         ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        data_zamowienia TEXT not null default CURRENT_DATE,
-                        data_zakonczenia TEXT,
-                        ostateczny_termin TEXT not null default \"{tmp}\",
+                        data_zamowienia DATE not null default CURRENT_DATE,
+                        data_zakonczenia DATE,
+                        ostateczny_termin DATE,
                         cena_calosc INTEGER not null default 0,
                         status_zlecenia CHAR not null default 'R'
                     );
@@ -152,11 +150,25 @@ class Zlecenia():
         #statusy: R - rozpoczete, Z - zakonczone
 
     def new_order():
-        MyQuery('INSERT INTO Zlecenia DEFAULT VALUES')
-        
-    def fetch_records_ord(type):
-        return MyQuery(f'SELECT ID,data_zamowienia,ostateczny_termin,cena_calosc FROM Zlecenia WHERE status_zlecenia="{type}"')
+        tmp=(str(datetime.datetime.today() + datetime.timedelta(days=7))).split()[0]
+        MyQuery(f'INSERT INTO Zlecenia(ostateczny_termin) VALUES(?)',(tmp,))
     
+    def fetch_records_ord(type):
+        tmp=""
+        if type=='Z':
+            tmp="data_zakonczenia,"
+        return MyQuery(f'SELECT ID,data_zamowienia,{tmp}ostateczny_termin,cena_calosc FROM Zlecenia WHERE status_zlecenia="{type}"')
+    
+    def change_status(id,new_status):
+        MyQuery('UPDATE Zlecenia SET status_zlecenia=? WHERE ID=?',(new_status,id))
+        
+    def update_record(id,data_zamowienia,ostateczny_termin):
+        MyQuery('UPDATE Zlecenia SET data_zamowienia=?, ostateczny_termin=? WHERE ID=?',
+                (data_zamowienia,ostateczny_termin,id))
+    
+    def end_order(id):
+        tmp=(str(datetime.datetime.today())).split()[0]
+        MyQuery('UPDATE Zlecenia SET data_zakonczenia=?, status_zlecenia=\'Z\' WHERE ID=?',(tmp,id))
         
 class Produkty_na_sprzedaz():
     def create_table():
