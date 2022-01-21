@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Stolarnia</title>
+
+        <style>{{MyStyle}}</style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h2>Klienci</h2>
+            </div>
+            <div class="content">
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>nazwa</th>
+                        <th>lokalizacja</th>
+                        <th>poczatek_wspolpracy</th>
+                    </tr>
+                    {{records}}
+                </table>
+                <form action='/'>
+                    <input type="submit" value="Cofnij">
+                </form>
+                <form method="POST" , enctype="multipart/form-data" action='/add_new_client'>
+                    <label for="clName">Nazwa nowego klienta</label><br>
+                    <input type="text" name="clName" value="Klient"><br>
+                    <label for="clLoc">Lokalizacja nowego klienta</label><br>
+                    <input type="text" name="clLoc" value="Lokalizacja"><br>
+                    <label for="clSdate">Poczatek wspolpracy</label><br>
+                    <input type="date" name="clSdate" value=""><br>
+
+                    <input type="submit" value="Dodaj">
+                </form>
+            </div>
+            <div class="footer"></div>
+        </div>
+    </body>
+</html>

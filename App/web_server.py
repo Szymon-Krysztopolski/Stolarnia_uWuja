@@ -1,11 +1,10 @@
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from sqlite3 import connect
+import datetime
 from urllib.parse import urlparse, parse_qs
 
-from matplotlib.cbook import normalize_kwargs
 import database.database as db
-import cgi
-import pyautogui
+import cgi, pyautogui
 
 HOST_NAME = "127.0.0.1"
 PORT = 8404
@@ -35,13 +34,15 @@ def print_records(q):
         print(row)
 
 class PythonServer(SimpleHTTPRequestHandler):
-    def respond(self, html):
+    def respond_file(self, html):
         tmp=read_html_template(html)
         tmp = self.import_css(tmp)
+        self.respond_mess(tmp)
         
+    def respond_mess(self, html):
         self.send_response(200, "OK")
         self.end_headers()
-        self.wfile.write(bytes(tmp, "utf-8"))
+        self.wfile.write(bytes(html, "utf-8"))
         
     def import_css(self,html):
         try:
@@ -91,45 +92,59 @@ class PythonServer(SimpleHTTPRequestHandler):
 #-------------------------------------------------------------------------
     def do_GET(self):
         if self.path == '/' or self.path == '/?':
-            self.respond(PATH_HTML+"/index.html")
+            self.respond_file(PATH_HTML+"/index.html")
         elif self.path=='/show_ProductTypes':
             self.show_records(PATH_HTML+"/show_productTypes.html","RP",db.fetch_records("Rodzaje_produktow"))
         elif self.path=='/show_MaterialTypes':
             self.show_records(PATH_HTML+"/show_materialTypes.html","RM",db.fetch_records("Rodzaje_materialow"))
         elif self.path=='/show_Products':
             self.show_records(PATH_HTML+"/show_products.html","Pr",db.fetch_records("Produkty"))
+        elif self.path=='/show_Clients':
+            self.show_records(PATH_HTML+"/show_clients.html","Cl",db.fetch_records("Klienci"))
         elif self.path[:4]=='/mod':
             #mod_??_{id}
-            tab=self.path[5:7]
-            
-            if not '?' in self.path:            
-                self.respond(PATH_HTML+f"/mod_{tab}.html")
-            else:
-                query_components = parse_qs(urlparse(self.path).query)
-                id=self.path[8:self.path.index('?')]
-                if tab=="RP":
-                    nazwa = query_components["prodType"][0]
-                    db.Rodzaje_produktow.update_record(id,nazwa)
-                    self.path="/show_ProductTypes"
-                elif tab=="RM":
-                    nazwa = query_components["matType"][0]
-                    cena = query_components["matPrice"][0]
-                    db.Rodzaje_materialow.update_record(id,nazwa,cena)
-                    self.path="/show_MaterialTypes"
-                elif tab=="Pr":
-                    nazwa = query_components["prodName"][0]
-                    nazwa_pt = query_components["prodTypeName"][0]
-                    cena = query_components["prodPrice"][0]
+            try:
+                tab=self.path[5:7]
+                
+                if not '?' in self.path:            
+                    self.respond_file(PATH_HTML+f"/mod_{tab}.html")
+                else:
+                    query_components = parse_qs(urlparse(self.path).query)
+                    id=self.path[8:self.path.index('?')]
+                    if tab=="RP":
+                        nazwa = query_components["prodType"][0]
+                        db.Rodzaje_produktow.update_record(id,nazwa)
+                        self.path="/show_ProductTypes"
+                    elif tab=="RM":
+                        nazwa = query_components["matType"][0]
+                        cena = query_components["matPrice"][0]
+                        db.Rodzaje_materialow.update_record(id,nazwa,cena)
+                        self.path="/show_MaterialTypes"
+                    elif tab=="Pr":
+                        nazwa = query_components["prodName"][0]
+                        nazwa_pt = query_components["prodTypeName"][0]
+                        cena = query_components["prodPrice"][0]
+                        
+                        id_pt=db.Rodzaje_produktow.get_id_by_name(nazwa_pt)
+                        if id_pt is not None:
+                            db.Produkty.update_record(id,id_pt,nazwa,cena)
+                        self.path="/show_Products"
+                    elif tab=="Cl":
+                        nazwa = query_components["clName"][0]
+                        lokalizacja = query_components["clLoc"][0]
+                        try:
+                            pocz_wsp = query_components["clSdate"][0]
+                        except:
+                            pocz_wsp=datetime.date.today()
+                        
+                        db.Klienci.update_record(id,nazwa,lokalizacja,pocz_wsp)
+                        self.path="/show_Clients"
                     
-                    id_pt=db.Rodzaje_produktow.get_id_by_name(nazwa_pt)
-                    if id_pt is not None:
-                        db.Produkty.update_record(id,id_pt,nazwa,cena)
-                    self.path="/show_Products"
-                    
-                tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="{self.path}"</script></head><body></body></html>'
-                self.send_response(200, "OK")
-                self.end_headers()
-                self.wfile.write(bytes(tmp, "utf-8"))
+                    tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="{self.path}"</script></head><body></body></html>'
+                    self.respond_mess(tmp)
+            except:
+                tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="/"</script></head><body></body></html>'
+                self.respond_mess(tmp)
                 
         elif self.path[:4]=='/det':
             tab=self.path[5:7]
@@ -152,9 +167,7 @@ class PythonServer(SimpleHTTPRequestHandler):
                 
                 self.path=f"/det_Pr_{id}"
                 tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="{self.path}"</script></head><body></body></html>'
-                self.send_response(200, "OK")
-                self.end_headers()
-                self.wfile.write(bytes(tmp, "utf-8"))
+                self.respond_mess(tmp)
 #-------------------------------------------------------------------------
     def do_POST(self):
         if self.path=='/add_new_productType':
@@ -193,6 +206,21 @@ class PythonServer(SimpleHTTPRequestHandler):
                     db.Produkty.insert_record(id_pt,nazwa,cena)
             pyautogui.hotkey('f5')
             
+        elif self.path=='/add_new_client':
+            ctype, pdict = cgi.parse_header(self.headers.get('content-type'))
+            pdict['boundary'] = bytes(pdict['boundary'], 'utf-8')
+
+            if ctype == 'multipart/form-data':
+                fields = cgi.parse_multipart(self.rfile, pdict)
+                nazwa = fields.get("clName")[0]
+                lokalizacja = fields.get("clLoc")[0]
+                pocz_wsp = fields.get("clSdate")[0]
+
+                if pocz_wsp=="":
+                    pocz_wsp=datetime.date.today()
+                db.Klienci.insert_record(nazwa,lokalizacja,pocz_wsp)
+            pyautogui.hotkey('f5')
+            
         elif self.path[:4]=='/del':
             #del_??_{id}
             tab=self.path[5:7]
@@ -209,6 +237,8 @@ class PythonServer(SimpleHTTPRequestHandler):
                 db.del_record_byID("Produkty",id)
             elif tab=="Ko":
                 db.Komponenty.del_record_byID(id,id2,name)
+            elif tab=="Cl":
+                db.del_record_byID("Klienci",id)
                 
             pyautogui.hotkey('f5')
 #-------------------------------------------------------------------------

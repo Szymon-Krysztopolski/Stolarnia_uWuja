@@ -122,21 +122,24 @@ class Klienci():
                         ID INTEGER PRIMARY KEY AUTOINCREMENT,
                         nazwa TEXT not null UNIQUE,
                         lokalizacja TEXT not null,
-                        poczatek_wspolpracy date not null
+                        poczatek_wspolpracy TEXT not null
                     );
                     '''
         MyQuery(table_script)
 
     def insert_record(nazwa,lokalizacja,poczatek_wspolpracy):
-        MyQuery('INSERT INTO Klienci(nazwa,lokalizacja,poczatek_wspolpracy) VALUES(?)',(nazwa,lokalizacja,poczatek_wspolpracy))
+        MyQuery('INSERT INTO Klienci(nazwa,lokalizacja,poczatek_wspolpracy) VALUES(?,?,?)',(nazwa,lokalizacja,poczatek_wspolpracy))
+        
+    def update_record(id,nazwa,lokalizacja,poczatek_wspolpracy):
+        MyQuery('UPDATE Klienci SET nazwa=?, lokalizacja=?, poczatek_wspolpracy=? where ID=?',(nazwa,lokalizacja,poczatek_wspolpracy,id))
 
 class Zlecenia():
     def create_table():
         table_script = '''CREATE TABLE IF NOT EXISTS Zlecenia(
                         ID INTEGER PRIMARY KEY AUTOINCREMENT,
-                        data_zamowienia DATE not null default DATE('now'),
+                        data_zamowienia DATE not null default CURRENT_DATE,
                         data_zakonczenia DATE,
-                        ostateczny_termin DATE not null default DATE('now','+7 day'),
+                        ostateczny_termin DATE not null default (datetime('now')),
                         cena_calosc INTEGER not null default 0,
                         status_zlecenia CHAR not null default 'R'
                     );
