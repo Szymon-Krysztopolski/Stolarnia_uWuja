@@ -6,7 +6,7 @@
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <title>Stolarnia</title>
 
-        <style>{{{MyStyle}}</style>
+        <style>{{MyStyle}}</style>
     </head>
     <body>
         <div class="container">
@@ -25,21 +25,23 @@
                     </tr>
                     {{records}}
                 </table>
-                <form>
-                    <label for="compName">Nazwa nowego komponentu</label><br>
-                    <input type="text" name="compName" value="Deska1"><br>
-                    <label for="matName">Nazwa materialu</label><br>
-                    <input type="text" name="matName" value="Deska 19'"><br>
+                <div class="add_form">
+                    <form>
+                        <label for="compName">Nazwa nowego komponentu</label><br>
+                        <input type="text" name="compName" value="Deska1"><br>
+                        <label for="matName">Nazwa materialu</label><br>
+                        <input type="text" name="matName" value="Deska 19'"><br>
 
-                    <label for="dimX">wymiar_X</label><br>
-                    <input type="number" name="dimX" value="0"><br>
-                    <label for="dimY">wymiar_Y</label><br>
-                    <input type="number" name="dimY" value="0"><br>
-                    <label for="dimZ">wymiar_Z</label><br>
-                    <input type="number" name="dimZ" value="0"><br>
+                        <label for="dimX">wymiar_X</label><br>
+                        <input type="number" name="dimX" value="0"><br>
+                        <label for="dimY">wymiar_Y</label><br>
+                        <input type="number" name="dimY" value="0"><br>
+                        <label for="dimZ">wymiar_Z</label><br>
+                        <input type="number" name="dimZ" value="0"><br>
 
-                    <input type="submit" value="Dodaj">
-                </form>
+                        <input type="submit" value="Dodaj">
+                    </form>
+                </div>
             </div>
             <div class="footer"></div>
         </div>

@@ -16,7 +16,7 @@ def MyQuery(q,vars=-1):
     except (connection.Error, connection.Warning) as e:
         print(e)
         return None
-    
+
 class Rodzaje_produktow():
     def create_table():
         table_script = '''CREATE TABLE IF NOT EXISTS Rodzaje_produktow(
@@ -48,7 +48,7 @@ class Rodzaje_produktow():
         else:
             print("Error with query")
             return None
-        
+
 class Rodzaje_materialow():
     def create_table():
         table_script = '''CREATE TABLE IF NOT EXISTS Rodzaje_materialow(
@@ -73,7 +73,7 @@ class Rodzaje_materialow():
         else:
             print("Error with query")
             return None
-        
+
 class Produkty():
     def create_table():
         table_script = '''CREATE TABLE IF NOT EXISTS Produkty(
@@ -91,6 +91,14 @@ class Produkty():
 
     def update_record(id,id_pt,nazwa,cena):
         MyQuery('UPDATE Produkty SET ID_rodzaje_prod=?, nazwa=?, cena_robocizna=? where ID=?',(id_pt,nazwa,cena,id))
+        
+    def get_id_by_name(name):
+        res = MyQuery('SELECT ID FROM Produkty WHERE nazwa=?',(name,)).fetchone()
+        if res is not None:
+            return res[0]
+        else:
+            print("Error with query")
+            return None
 
 class Komponenty():
     def create_table():
@@ -135,15 +143,25 @@ class Klienci():
     def update_record(id,nazwa,lokalizacja,poczatek_wspolpracy):
         MyQuery('UPDATE Klienci SET nazwa=?, lokalizacja=?, poczatek_wspolpracy=? where ID=?',(nazwa,lokalizacja,poczatek_wspolpracy,id))
 
+    def get_id_by_name(name):
+        res = MyQuery('SELECT ID FROM Klienci WHERE nazwa=?',(name,)).fetchone()
+        if res is not None:
+            return res[0]
+        else:
+            print("Error with query")
+            return None
+
 class Zlecenia():
     def create_table():
         table_script = f'''CREATE TABLE IF NOT EXISTS Zlecenia(
                         ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                        ID_klienta INTEGER,
                         data_zamowienia DATE not null default CURRENT_DATE,
                         data_zakonczenia DATE,
                         ostateczny_termin DATE,
                         cena_calosc INTEGER not null default 0,
-                        status_zlecenia CHAR not null default 'R'
+                        status_zlecenia CHAR not null default 'R',
+                        FOREIGN KEY(ID_klienta) REFERENCES Klienci(ID)
                     );
                     '''
         MyQuery(table_script)
@@ -151,30 +169,47 @@ class Zlecenia():
 
     def new_order():
         tmp=(str(datetime.datetime.today() + datetime.timedelta(days=7))).split()[0]
-        MyQuery(f'INSERT INTO Zlecenia(ostateczny_termin) VALUES(?)',(tmp,))
+        MyQuery(f'INSERT INTO Zlecenia(ostateczny_termin,ID_klienta) VALUES(?,1)',(tmp,))
     
     def fetch_records_ord(type):
         tmp=""
         if type=='Z':
             tmp="data_zakonczenia,"
-        return MyQuery(f'SELECT ID,data_zamowienia,{tmp}ostateczny_termin,cena_calosc FROM Zlecenia WHERE status_zlecenia="{type}"')
+        return MyQuery(f'''SELECT Zlecenia.ID,Klienci.nazwa,data_zamowienia,{tmp}ostateczny_termin,cena_calosc 
+                       FROM Zlecenia JOIN Klienci ON Zlecenia.ID_klienta=Klienci.ID
+                       WHERE status_zlecenia="{type}"
+                    ''')
     
     def change_status(id,new_status):
         MyQuery('UPDATE Zlecenia SET status_zlecenia=? WHERE ID=?',(new_status,id))
         
-    def update_record(id,data_zamowienia,ostateczny_termin):
-        MyQuery('UPDATE Zlecenia SET data_zamowienia=?, ostateczny_termin=? WHERE ID=?',
-                (data_zamowienia,ostateczny_termin,id))
+    def update_record(id,data_zamowienia,ostateczny_termin,id_klienta):
+        MyQuery('UPDATE Zlecenia SET data_zamowienia=?, ostateczny_termin=?, ID_klienta=? WHERE ID=?',
+                (data_zamowienia,ostateczny_termin,id_klienta,id))
     
     def end_order(id):
         tmp=(str(datetime.datetime.today())).split()[0]
         MyQuery('UPDATE Zlecenia SET data_zakonczenia=?, status_zlecenia=\'Z\' WHERE ID=?',(tmp,id))
         
+    def update_total_price(id):
+        MyQuery('''UPDATE Zlecenia 
+                SET cena_calosc=coalesce((
+                    SELECT SUM(wymiar_X*wymiar_Y*wymiar_Z*cena_za_jednostke*ilosc)+cena_robocizna
+                    FROM Zlecenia 
+                        JOIN Produkty_na_sprzedaz ON Zlecenia.ID=Produkty_na_sprzedaz.ID_zlecenia
+                        JOIN Komponenty ON Komponenty.ID_produktu=Produkty_na_sprzedaz.ID_produktu
+                        JOIN Produkty ON Produkty.ID=Produkty_na_sprzedaz.ID_produktu
+                        JOIN Rodzaje_materialow ON Rodzaje_materialow.ID=Komponenty.ID_materialu
+                ),0)
+                WHERE ID=?
+                ''',(id,))
+
 class Produkty_na_sprzedaz():
     def create_table():
         table_script = '''CREATE TABLE IF NOT EXISTS Produkty_na_sprzedaz(
                         ID_produktu INTEGER not null,
                         ID_zlecenia INTEGER not null,
+                        ilosc INTEGER not null,
                         
                         FOREIGN KEY(ID_produktu) REFERENCES Rodzaje_produktow(ID) on delete cascade,
                         FOREIGN KEY(ID_zlecenia) REFERENCES Zlecenia(ID) on delete cascade,
@@ -183,8 +218,19 @@ class Produkty_na_sprzedaz():
                     '''
         MyQuery(table_script)
     
-    def insert_record(ID_produktu,ID_zlecenia):
-        MyQuery('INSERT INTO Produkty_na_sprzedaz(ID_produktu,ID_zlecenia) VALUES(?,?)',(ID_produktu,ID_zlecenia))
+    def insert_record(ID_zlecenia,ID_produktu,ilosc):
+        MyQuery('INSERT INTO Produkty_na_sprzedaz(ID_produktu,ID_zlecenia,ilosc) VALUES(?,?,?)',(ID_produktu,ID_zlecenia,ilosc))
+
+    def fetch_records_by_ordID(id):
+        return MyQuery('''SELECT ID_zlecenia, ID_produktu, Produkty.nazwa, ilosc, Klienci.nazwa
+                       FROM Produkty_na_sprzedaz JOIN Produkty ON Produkty.ID=Produkty_na_sprzedaz.ID_produktu
+                       JOIN Zlecenia ON Zlecenia.ID=Produkty_na_sprzedaz.ID_zlecenia
+                       JOIN Klienci ON Klienci.ID=Zlecenia.ID_klienta
+                       WHERE ID_zlecenia = ?
+                       ''',(id,))
+    
+    def del_record_byID(id1,id2):
+        MyQuery("DELETE FROM Produkty_na_sprzedaz where ID_zlecenia=? and ID_produktu=?",(id1, id2))
 
 def fetch_records(table):
     return MyQuery(f"SELECT * FROM {table}")

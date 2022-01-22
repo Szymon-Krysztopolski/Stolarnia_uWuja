@@ -11,28 +11,26 @@
     <body>
         <div class="container">
             <div class="header">
-                <h2>Produkty</h2>
+                <h2>Produkt na sprzedaz</h2>
             </div>
             <div class="content">
                 <table>
                     <tr>
-                        <th>ID</th>
-                        <th>ID_rodzaje_prod</th>
-                        <th>nazwa</th>
-                        <th>cena_robocizna</th>
+                        <th>ID zlecenia</th>
+                        <th>ID produktu</th>
+                        <th>Nazwa produktu</th>
+                        <th>Ilosc</th>
+                        <th>Nazwa klienta</th>
                     </tr>
                     {{records}}
                 </table>
                 <div class="add_form">
-                    <form method="POST" , enctype="multipart/form-data" action='/add_new_product'>      
-                        <label for="prodTypeName">Nazwa rodzaju produktu</label><br>
-                        <input type="text" name="prodTypeName" value="Palety"><br>
+                    <form>
+                        <label for="prName">Nazwa nowego produkty</label><br>
+                        <input type="text" name="prName" value=""><br>
 
-                        <label for="prodName">Nazwa nowego produktow</label><br>
-                        <input type="text" name="prodName" value="Nowy"><br>
-
-                        <label for="prodPrice">Cena za wykonanie</label><br>
-                        <input type="number" name="prodPrice" value="10"><br>
+                        <label for="prCount">Ilosc</label><br>
+                        <input type="number" name="prCount" value="1"><br>
 
                         <input type="submit" value="Dodaj">
                     </form>

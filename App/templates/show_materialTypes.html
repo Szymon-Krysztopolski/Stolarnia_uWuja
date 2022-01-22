@@ -22,15 +22,17 @@
                     </tr>
                     {{records}}
                 </table>
-                <form method="POST" , enctype="multipart/form-data" action='/add_new_materialType'>
-                    <label for="matType">Nazwa nowego materialu</label><br>
-                    <input type="text" name="matType" value="Nowy"><br>
+                <div class="add_form">
+                    <form method="POST" , enctype="multipart/form-data" action='/add_new_materialType'>
+                        <label for="matType">Nazwa nowego materialu</label><br>
+                        <input type="text" name="matType" value="Nowy"><br>
 
-                    <label for="matPrice">Cena</label><br>
-                    <input type="number" name="matPrice" value="0"><br>
+                        <label for="matPrice">Cena</label><br>
+                        <input type="number" name="matPrice" value="0"><br>
 
-                    <input type="submit" value="Dodaj">
-                </form>
+                        <input type="submit" value="Dodaj">
+                    </form>
+                </div>
             </div>
             <div class="footer"></div>
         </div>

@@ -61,7 +61,7 @@ class PythonServer(SimpleHTTPRequestHandler):
                 table_row += "</td>"
                 
             #modif butt
-            if table_name != "Ko":
+            if table_name not in ["Ko","Or"]:
                 table_row += "<td>"
                 if table_name!="OZ":
                     table_row += f'<a class="button" href="/mod_{table_name}_{str(data[0])}">Modyfikuj</a><br>'
@@ -81,6 +81,8 @@ class PythonServer(SimpleHTTPRequestHandler):
                 table_row += butt_del(table_name,str(data[0]),str(data[1]),str(data[2]))
             elif table_name == "OR":
                 table_row += f'<a class="button" href="/ordEnd_{str(data[0])}">Zakoncz</a><br>'
+            elif table_name == "Or":
+                table_row += butt_del(table_name,str(data[0]),str(data[1]),"")
             else:
                 table_row += butt_del(table_name,str(data[0]),"","")
             table_row += "</td>"
@@ -165,7 +167,10 @@ class PythonServer(SimpleHTTPRequestHandler):
                     elif tab=="OR":
                         data_zamowienia = query_components["data_start"][0]
                         ostateczny_termin = query_components["data_dline"][0]
-                        db.Zlecenia.update_record(id,data_zamowienia,ostateczny_termin)
+                        nazwa_klienta = query_components["clName"][0]
+                        
+                        id_klienta=db.Klienci.get_id_by_name(nazwa_klienta)
+                        db.Zlecenia.update_record(id,data_zamowienia,ostateczny_termin,id_klienta)
                         self.path="/show_orders_R"
                         
                     tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="{self.path}"</script></head><body></body></html>'
@@ -173,29 +178,47 @@ class PythonServer(SimpleHTTPRequestHandler):
             except:
                 tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="/"</script></head><body></body></html>'
                 self.respond_mess(tmp)
-                
+
         elif self.path[:4]=='/det':
             tab=self.path[5:7]
-            
-            if not '?' in self.path:
-                id=self.path[8:]
-                self.show_records(PATH_HTML+"/det_Pr.html","Ko",db.Komponenty.fetch_records_by_prodID(id))
-            else:
-                id=self.path[8:self.path.index('?')]
-                query_components = parse_qs(urlparse(self.path).query)
-                nazwa = query_components["compName"][0]
-                nazwa_mat = query_components["matName"][0]
-                wymX = query_components["dimX"][0]
-                wymY = query_components["dimY"][0]
-                wymZ = query_components["dimZ"][0]
-                
-                id_mat=db.Rodzaje_materialow.get_id_by_name(nazwa_mat)
-                if id_mat is not None:
-                    db.Komponenty.insert_record(id,id_mat,nazwa,wymX,wymY,wymZ)
-                
-                self.path=f"/det_Pr_{id}"
-                tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="{self.path}"</script></head><body></body></html>'
-                self.respond_mess(tmp)
+            if tab=="Pr":
+                if not '?' in self.path:
+                    id=self.path[8:]
+                    self.show_records(PATH_HTML+"/det_Pr.html","Ko",db.Komponenty.fetch_records_by_prodID(id))
+                else:
+                    id=self.path[8:self.path.index('?')]
+                    query_components = parse_qs(urlparse(self.path).query)
+                    nazwa = query_components["compName"][0]
+                    nazwa_mat = query_components["matName"][0]
+                    wymX = query_components["dimX"][0]
+                    wymY = query_components["dimY"][0]
+                    wymZ = query_components["dimZ"][0]
+                    
+                    id_mat=db.Rodzaje_materialow.get_id_by_name(nazwa_mat)
+                    if id_mat is not None:
+                        db.Komponenty.insert_record(id,id_mat,nazwa,wymX,wymY,wymZ)
+                    
+                    self.path=f"/det_Pr_{id}"
+                    tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="{self.path}"</script></head><body></body></html>'
+                    self.respond_mess(tmp)
+            elif tab=="OR":
+                if not '?' in self.path:
+                    id=self.path[8:]
+                    self.show_records(PATH_HTML+"/det_OR.html","Or",db.Produkty_na_sprzedaz.fetch_records_by_ordID(id))
+                else:
+                    id=self.path[8:self.path.index('?')]
+                    query_components = parse_qs(urlparse(self.path).query)
+                    nazwa = query_components["prName"][0]
+                    ilosc = query_components["prCount"][0]
+                    
+                    id_pr=db.Produkty.get_id_by_name(nazwa)
+                    if id_pr is not None:
+                        db.Produkty_na_sprzedaz.insert_record(id,id_pr,ilosc)
+                        db.Zlecenia.update_total_price(id)
+                    
+                    self.path=f"/det_OR_{id}"
+                    tmp=f'<html><head><meta charset="UTF-8"/><script>window.location.href="{self.path}"</script></head><body></body></html>'
+                    self.respond_mess(tmp)
 #-------------------------------------------------------------------------
     def do_POST(self):
         if self.path=='/add_new_productType':
@@ -269,6 +292,9 @@ class PythonServer(SimpleHTTPRequestHandler):
                 db.del_record_byID("Klienci",id)
             elif tab=="OZ":
                 db.del_record_byID("Zlecenia",id)
+            elif tab=="Or":
+                db.Produkty_na_sprzedaz.del_record_byID(id,id2)
+                db.Zlecenia.update_total_price(id)
                 
             pyautogui.hotkey('f5')
 #-------------------------------------------------------------------------

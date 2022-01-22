@@ -23,16 +23,18 @@
                     </tr>
                     {{records}}
                 </table>
-                <form method="POST" , enctype="multipart/form-data" action='/add_new_client'>
-                    <label for="clName">Nazwa nowego klienta</label><br>
-                    <input type="text" name="clName" value="Klient"><br>
-                    <label for="clLoc">Lokalizacja nowego klienta</label><br>
-                    <input type="text" name="clLoc" value="Lokalizacja"><br>
-                    <label for="clSdate">Poczatek wspolpracy</label><br>
-                    <input type="date" name="clSdate" value=""><br>
+                <div class="add_form">
+                    <form method="POST" , enctype="multipart/form-data" action='/add_new_client'>
+                        <label for="clName">Nazwa nowego klienta</label><br>
+                        <input type="text" name="clName" value="Klient"><br>
+                        <label for="clLoc">Lokalizacja nowego klienta</label><br>
+                        <input type="text" name="clLoc" value="Lokalizacja"><br>
+                        <label for="clSdate">Poczatek wspolpracy</label><br>
+                        <input type="date" name="clSdate" value=""><br>
 
-                    <input type="submit" value="Dodaj">
-                </form>
+                        <input type="submit" value="Dodaj">
+                    </form>
+                </div>
             </div>
             <div class="footer"></div>
         </div>
