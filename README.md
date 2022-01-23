@@ -13,4 +13,4 @@ Administrator systemu (czyt. kierownik zakładu) będzie jedyną osobą wymagan�
 </p>
 
 ## Diagram UML
-![UML](http://url/to/uml.png)
+![UML](uml.png)
