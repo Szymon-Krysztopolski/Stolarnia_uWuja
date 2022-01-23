@@ -2,7 +2,6 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 from sqlite3 import connect
 import datetime
 from urllib.parse import urlparse, parse_qs
-
 import database.database as db
 import cgi, pyautogui
 
