@@ -1,6 +1,6 @@
 # Stolarnia_uWuja
 ## Opis
-<p align="justify">
+<p align="justify" style="text-indent: 10%;">
 Program ma na celu pomoc w zarządzaniu stolarnią. Jednakże będzie to miejsce w którym nie produkuje się mebli, a opakowania potrzebne później do transportu towarów (np. palety 120x80, skrzynki z płyty OSB). 
 
 Każdy produkt (np. skrzynka) składa się z (najczęściej) z kilku komponentów (gwoździe, deski, klocki, itp) oraz należy do pewnej kategorii produktów (paleta, skrzynka, stabilizator, itp). 
@@ -12,5 +12,11 @@ Główną funkcjonalnością (oprócz dodawania nowych produktów i klientów do
 Administrator systemu (czyt. kierownik zakładu) będzie jedyną osobą wymaganą do działania systemu (zakładamy że stolarnia jest niewielka, więc takie rozwiązanie w zupełności wystarczy). Oprócz tego będzie można wyświetlać dane produktów.
 </p>
 
+___
+
 ## Diagram UML
-![UML](uml.png)
+<p align="center">
+  <img src="photos/uml.png">
+</p>
+
+___
