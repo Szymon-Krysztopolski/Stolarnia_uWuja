@@ -16,7 +16,7 @@ ___
 
 ## Diagram UML
 <p align="center">
-  <img src="photos/uml.png">
+  <img src="Photos/uml.png">
 </p>
 
 ___
