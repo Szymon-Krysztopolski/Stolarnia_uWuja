@@ -194,17 +194,21 @@ class Zlecenia():
     def update_total_price(id):
         MyQuery('''UPDATE Zlecenia 
                 SET cena_calosc=coalesce((
-                    SELECT SUM(wymiar_X*wymiar_Y*wymiar_Z*cena_za_jednostke*ilosc)+cena_robocizna
+                    SELECT SUM(cena_robocizna*ilosc+(
+                        SELECT SUM(wymiar_X*wymiar_Y*wymiar_Z*cena_za_jednostke*ilosc)
+                        FROM Komponenty JOIN Rodzaje_materialow ON Rodzaje_materialow.ID=Komponenty.ID_materialu
+                        WHERE Komponenty.ID_produktu=Produkty.ID
+                    ))
                     FROM Zlecenia 
                         JOIN Produkty_na_sprzedaz ON Zlecenia.ID=Produkty_na_sprzedaz.ID_zlecenia
-                        JOIN Komponenty ON Komponenty.ID_produktu=Produkty_na_sprzedaz.ID_produktu
                         JOIN Produkty ON Produkty.ID=Produkty_na_sprzedaz.ID_produktu
-                        JOIN Rodzaje_materialow ON Rodzaje_materialow.ID=Komponenty.ID_materialu
                     WHERE Zlecenia.ID=?
                 ),0)
                 WHERE ID=?
-                ''',(id,id))
+                ''',(id,id))#*cena_za_jednostke*ilosc#
 
+#JOIN Komponenty ON Komponenty.ID_produktu=Produkty_na_sprzedaz.ID_produktu
+#JOIN Rodzaje_materialow ON Rodzaje_materialow.ID=Komponenty.ID_materialu
 class Produkty_na_sprzedaz():
     def create_table():
         table_script = '''CREATE TABLE IF NOT EXISTS Produkty_na_sprzedaz(
