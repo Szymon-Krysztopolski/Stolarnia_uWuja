@@ -205,10 +205,8 @@ class Zlecenia():
                     WHERE Zlecenia.ID=?
                 ),0)
                 WHERE ID=?
-                ''',(id,id))#*cena_za_jednostke*ilosc#
-
-#JOIN Komponenty ON Komponenty.ID_produktu=Produkty_na_sprzedaz.ID_produktu
-#JOIN Rodzaje_materialow ON Rodzaje_materialow.ID=Komponenty.ID_materialu
+                ''',(id,id))
+        
 class Produkty_na_sprzedaz():
     def create_table():
         table_script = '''CREATE TABLE IF NOT EXISTS Produkty_na_sprzedaz(
